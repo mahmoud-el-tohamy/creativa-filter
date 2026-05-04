@@ -90,7 +90,7 @@ export default function FilterPage() {
   const totalPages = cleanList ? Math.ceil(cleanList.length / itemsPerPage) : 0;
 
   return (
-    <main className="min-h-screen bg-gray-50 text-gray-900 p-6 sm:p-12 font-sans">
+    <main className="flex-1 bg-transparent dark:bg-transparent text-gray-900 dark:text-gray-100 p-6 sm:p-12 font-sans w-full">
       {toast && (
         <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-lg shadow-lg z-50 transition-all ${toast.type === "success" ? "bg-green-600 text-white" : "bg-red-600 text-white"}`}>
           {toast.message}
@@ -99,16 +99,16 @@ export default function FilterPage() {
 
       <div className="max-w-5xl mx-auto space-y-8">
         <header className="text-center space-y-3 border-b pb-8">
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-blue-900 tracking-tight">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-blue-900 dark:text-blue-400 tracking-tight">
             فلترة قائمة المرشحين
           </h1>
-          <p className="text-gray-500 text-lg">
+          <p className="text-gray-500 dark:text-gray-400 text-lg">
             قم برفع قائمة المرشحين لمطابقتها مع البلاك ليست واستخراج القائمة النظيفة للتدريب
           </p>
         </header>
 
         {/* Upload Section */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-8">
           <FileUploadArea file={file} setFile={setFile} />
           
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -177,7 +177,7 @@ export default function FilterPage() {
                   <div className="p-6">
                     <div className="flex flex-wrap gap-2">
                       {blacklistedList.map((person, idx) => (
-                        <span key={idx} className="bg-white text-red-700 text-sm px-3 py-1.5 rounded-full border border-red-200 shadow-sm font-medium">
+                        <span key={idx} className="bg-white dark:bg-gray-800 text-red-700 text-sm px-3 py-1.5 rounded-full border border-red-200 shadow-sm font-medium">
                           {person.name} ({person.nationalId})
                         </span>
                       ))}
@@ -188,9 +188,9 @@ export default function FilterPage() {
             )}
 
             {/* Clean List Table */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-              <div className="px-6 py-5 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
-                <h3 className="text-xl font-bold text-gray-800">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
+              <div className="px-6 py-5 border-b border-gray-100 dark:border-gray-800 bg-transparent dark:bg-transparent flex justify-between items-center">
+                <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200">
                   القائمة النظيفة (المقبولين)
                 </h3>
                 <span className="bg-green-100 text-green-800 text-sm font-semibold px-3 py-1 rounded-full">
@@ -200,7 +200,7 @@ export default function FilterPage() {
               
               <div className="overflow-x-auto">
                 <table className="w-full text-sm text-right text-gray-600">
-                  <thead className="bg-gray-50 text-gray-700 font-semibold border-b border-gray-200">
+                  <thead className="bg-transparent dark:bg-transparent text-gray-700 dark:text-gray-300 font-semibold border-b border-gray-200 dark:border-gray-700">
                     <tr>
                       <th className="px-6 py-4">الاسم</th>
                       <th className="px-6 py-4">الرقم القومي</th>
@@ -211,8 +211,8 @@ export default function FilterPage() {
                   <tbody>
                     {paginatedCleanList.length > 0 ? (
                       paginatedCleanList.map((person, idx) => (
-                        <tr key={idx} className="border-b last:border-0 hover:bg-gray-50 transition-colors">
-                          <td className="px-6 py-4 font-medium text-gray-900">{person.name}</td>
+                        <tr key={idx} className="border-b last:border-0 hover:bg-transparent dark:bg-transparent transition-colors">
+                          <td className="px-6 py-4 font-medium text-gray-900 dark:text-gray-100">{person.name}</td>
                           <td className="px-6 py-4">{person.nationalId}</td>
                           <td className="px-6 py-4">{person.phone || "-"}</td>
                           <td className="px-6 py-4">{person.email || "-"}</td>
@@ -220,7 +220,7 @@ export default function FilterPage() {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
+                        <td colSpan={4} className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
                           لا يوجد مرشحين مقبولين.
                         </td>
                       </tr>
@@ -231,7 +231,7 @@ export default function FilterPage() {
 
               {/* Pagination Controls */}
               {totalPages > 1 && (
-                <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between bg-gray-50">
+                <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between bg-transparent dark:bg-transparent">
                   <span className="text-sm text-gray-600">
                     صفحة {currentPage} من {totalPages}
                   </span>
@@ -239,14 +239,14 @@ export default function FilterPage() {
                     <button
                       onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                       disabled={currentPage === 1}
-                      className="px-4 py-2 rounded-lg bg-white border border-gray-200 text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                      className="px-4 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                     >
                       السابق
                     </button>
                     <button
                       onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                       disabled={currentPage === totalPages}
-                      className="px-4 py-2 rounded-lg bg-white border border-gray-200 text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                      className="px-4 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                     >
                       التالي
                     </button>
@@ -301,7 +301,7 @@ function FileUploadArea({ file, setFile }: { file: File | null, setFile: (f: Fil
   return (
     <div 
       className={`relative rounded-xl border-2 border-dashed transition-all duration-200 flex flex-col items-center justify-center p-10 text-center cursor-pointer
-        ${isDragging ? "border-blue-500 bg-blue-50" : "border-gray-300 bg-gray-50 hover:bg-gray-100"}
+        ${isDragging ? "border-blue-500 bg-blue-50" : "border-gray-300 dark:border-gray-600 bg-transparent dark:bg-transparent hover:bg-gray-100"}
         ${file ? "border-green-400 bg-green-50" : ""}`}
       onDragEnter={handleDrag}
       onDragLeave={handleDrag}
@@ -325,12 +325,12 @@ function FileUploadArea({ file, setFile }: { file: File | null, setFile: (f: Fil
             </svg>
           </div>
           <div>
-            <p className="text-lg font-bold text-gray-800">{file.name}</p>
-            <p className="text-sm text-gray-500 mt-1">{(file.size / 1024).toFixed(1)} KB</p>
+            <p className="text-lg font-bold text-gray-800 dark:text-gray-200">{file.name}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{(file.size / 1024).toFixed(1)} KB</p>
           </div>
           <button 
             onClick={(e) => { e.stopPropagation(); setFile(null); if(inputRef.current) inputRef.current.value=''; }}
-            className="mt-3 text-sm text-red-500 hover:text-red-700 font-bold inline-flex items-center gap-1 bg-white px-4 py-1.5 rounded-full shadow-sm border border-red-100"
+            className="mt-3 text-sm text-red-500 hover:text-red-700 font-bold inline-flex items-center gap-1 bg-white dark:bg-gray-800 px-4 py-1.5 rounded-full shadow-sm border border-red-100"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -340,13 +340,13 @@ function FileUploadArea({ file, setFile }: { file: File | null, setFile: (f: Fil
         </div>
       ) : (
         <div className="space-y-4">
-           <div className="w-16 h-16 bg-white text-blue-600 shadow-sm rounded-full flex items-center justify-center mx-auto border border-gray-100">
+           <div className="w-16 h-16 bg-white dark:bg-gray-800 text-blue-600 shadow-sm rounded-full flex items-center justify-center mx-auto border border-gray-100 dark:border-gray-800">
             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
           </div>
           <div>
-            <p className="text-xl text-gray-700 font-bold">
+            <p className="text-xl text-gray-700 dark:text-gray-300 font-bold">
               اسحب وأفلت شيت المرشحين هنا
             </p>
             <p className="text-base text-gray-400 mt-2">أو اضغط لاختيار ملف من جهازك</p>
