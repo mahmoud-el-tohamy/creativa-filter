@@ -8,38 +8,39 @@ export interface Person {
 }
 
 // قراءة شيت Excel وإرجاع array
-export function readExcel(file: File): Promise<Person[]> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const data = new Uint8Array(e.target?.result as ArrayBuffer);
-        const workbook = XLSX.read(data, { type: "array" });
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const rows = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1 });
+export async function readExcel(file: File): Promise<Person[]> {
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const data = new Uint8Array(arrayBuffer);
+    const workbook = XLSX.read(data, { type: "array" });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json<any[]>(sheet, { header: 1 });
 
-        // أول سطر هيدر، باقي الصفوف بيانات
-        const people: Person[] = rows
-          .slice(1)
-          .map((row: any) => ({
-            name: String(row[0] || "").trim(),
-            nationalId: String(row[1] || "").trim(),
-            phone: row[2] ? String(row[2]) : undefined,
-            email: row[3] ? String(row[3]) : undefined,
-          }))
-          .filter((p) => p.name && p.nationalId);
+    // أول سطر هيدر، باقي الصفوف بيانات
+    const people: Person[] = rows
+      .slice(1)
+      .map((row) => ({
+        name: String(row[0] || "").trim(),
+        nationalId: String(row[1] || "").trim(),
+        phone: row[2] ? String(row[2]) : undefined,
+        email: row[3] ? String(row[3]) : undefined,
+      }))
+      .filter((p) => p.name && p.nationalId);
 
-        resolve(people);
-      } catch (err) {
-        reject(err);
-      }
-    };
-    reader.onerror = (err) => {
-      console.error("FileReader error:", err);
-      reject(new Error("تعذر قراءة الملف. قد يكون الملف تالفاً أو مستخدماً من قبل برنامج آخر."));
-    };
-    reader.readAsArrayBuffer(file);
-  });
+    return people;
+  } catch (err: any) {
+    console.error("Excel processing error:", err);
+    
+    // Check for specific error types if possible
+    let message = "تعذر قراءة الملف. يرجى التأكد من أن الملف غير مفتوح في برنامج آخر.";
+    if (err.name === 'NotReadableError') {
+      message = "الملف غير قابل للقراءة. تأكد من إغلاقه في البرامج الأخرى (مثل إكسيل) قبل رفعه.";
+    } else if (err.message?.includes("corrupt")) {
+      message = "يبدو أن الملف تالف. يرجى المحاولة باستخدام ملف آخر.";
+    }
+
+    throw new Error(message);
+  }
 }
 
 // كتابة Excel وتحميله
