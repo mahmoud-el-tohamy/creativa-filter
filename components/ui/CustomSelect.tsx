@@ -18,6 +18,8 @@ interface CustomSelectProps {
   /** Render the trigger as a small colored badge (for role cells in tables) */
   asBadge?: boolean;
   disabled?: boolean;
+  id?: string;
+  ariaLabel?: string;
 }
 
 export default function CustomSelect({
@@ -27,6 +29,8 @@ export default function CustomSelect({
   className = "",
   asBadge = false,
   disabled = false,
+  id,
+  ariaLabel,
 }: CustomSelectProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -46,6 +50,10 @@ export default function CustomSelect({
     return (
       <div ref={ref} className="relative inline-block">
         <button
+          id={id}
+          aria-label={ariaLabel}
+          aria-haspopup="listbox"
+          aria-expanded={open}
           disabled={disabled}
           onClick={() => setOpen((o) => !o)}
           className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full transition-all
@@ -89,6 +97,10 @@ export default function CustomSelect({
   return (
     <div ref={ref} className={`relative ${className}`}>
       <button
+        id={id}
+        aria-label={ariaLabel}
+        aria-haspopup="listbox"
+        aria-expanded={open}
         disabled={disabled}
         onClick={() => setOpen((o) => !o)}
         className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl

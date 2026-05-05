@@ -277,7 +277,7 @@ function FileUploadCard({
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-6 flex flex-col h-full">
-      <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-2">{title}</h3>
+      <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-2">{title}</h2>
       <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">{description}</p>
       
       <div 
@@ -329,10 +329,10 @@ function FileUploadCard({
               </svg>
             </div>
             <div>
-              <p className="text-base text-gray-600 font-medium">
+              <p className="text-base text-gray-800 dark:text-gray-200 font-bold">
                 اسحب وأفلت الملف هنا
               </p>
-              <p className="text-sm text-gray-400 mt-1">أو اضغط لاختيار ملف</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">أو اضغط لاختيار ملف</p>
             </div>
           </div>
         )}

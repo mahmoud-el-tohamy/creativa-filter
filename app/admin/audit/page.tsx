@@ -177,8 +177,9 @@ export default function AuditPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Action filter */}
               <div>
-                <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">نوع الإجراء</label>
+                <label htmlFor="audit-filter-action" className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">نوع الإجراء</label>
                 <CustomSelect
+                  id="audit-filter-action"
                   value={filterAction}
                   onChange={(v) => { setFilterAction(v); setPage(1); }}
                   options={ACTION_FILTER_OPTIONS}

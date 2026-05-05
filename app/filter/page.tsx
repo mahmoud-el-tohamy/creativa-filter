@@ -223,9 +223,9 @@ export default function FilterPage() {
             {/* Clean List Table */}
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
               <div className="px-6 py-5 border-b border-gray-100 dark:border-gray-800 bg-transparent dark:bg-transparent flex justify-between items-center">
-                <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200">
+                <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200">
                   القائمة النظيفة (المقبولين)
-                </h3>
+                </h2>
                 <span className="bg-green-100 text-green-800 text-sm font-semibold px-3 py-1 rounded-full">
                   {cleanList.length} شخص
                 </span>
@@ -384,10 +384,10 @@ function FileUploadArea({ file, setFile }: { file: File | null, setFile: (f: Fil
             </svg>
           </div>
           <div>
-            <p className="text-xl text-gray-700 dark:text-gray-300 font-bold">
+            <p className="text-xl text-gray-800 dark:text-gray-200 font-bold">
               اسحب وأفلت شيت المرشحين هنا
             </p>
-            <p className="text-base text-gray-400 mt-2">أو اضغط لاختيار ملف من جهازك</p>
+            <p className="text-base text-gray-500 dark:text-gray-400 mt-2">أو اضغط لاختيار ملف من جهازك</p>
           </div>
         </div>
       )}

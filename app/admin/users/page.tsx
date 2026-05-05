@@ -109,8 +109,9 @@ function AddUserModal({ onClose, onCreated, currentUser }: AddUserModalProps) {
             </div>
           ))}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">الدور</label>
+            <label htmlFor="add-user-role" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">الدور</label>
             <CustomSelect
+              id="add-user-role"
               value={role}
               onChange={(v) => setRole(v as "employee" | "viewer")}
               options={[
@@ -357,6 +358,8 @@ export default function UsersPage() {
                         <td className="px-5 py-4">
                           <CustomSelect
                             asBadge
+                            id={`user-role-${u.uid}`}
+                            ariaLabel={`تغيير دور المستخدم ${u.displayName}`}
                             value={u.role}
                             onChange={(v) => handleRoleChange(u.uid, v as UserRole, u.displayName)}
                             options={[

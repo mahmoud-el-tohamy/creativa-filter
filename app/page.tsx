@@ -262,6 +262,7 @@ export default function Dashboard() {
         </Link>
         {/* Export Excel Dropdown */}
         <div className="flex bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm overflow-hidden focus-within:ring-2 focus-within:ring-green-500 transition-all">
+          <label htmlFor="dashboard-export-range" className="sr-only">تصدير بيانات إكسيل</label>
           <select
             id="dashboard-export-range"
             name="dashboardExportRange"
