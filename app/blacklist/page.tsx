@@ -428,7 +428,7 @@ export default function BlacklistPage() {
             </div>
             <form onSubmit={handleAdd} className="p-6 space-y-5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الاسم الرباعي</label>
+                <label htmlFor="blacklist-new-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الاسم الرباعي</label>
                 <input
                   id="blacklist-new-name"
                   name="blacklistNewName"
@@ -443,7 +443,7 @@ export default function BlacklistPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الرقم القومي</label>
+                <label htmlFor="blacklist-new-national-id" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الرقم القومي</label>
                 <input
                   id="blacklist-new-national-id"
                   name="blacklistNewNationalId"

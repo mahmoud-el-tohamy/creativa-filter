@@ -98,7 +98,7 @@ function AddUserModal({ onClose, onCreated, currentUser }: AddUserModalProps) {
             { key: "password", label: "كلمة المرور", value: password, set: setPassword, type: "password", placeholder: "8 أحرف على الأقل" },
           ].map(({ key, label, value, set, type, placeholder }) => (
             <div key={label}>
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">{label}</label>
+              <label htmlFor={`add-user-${key}`} className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">{label}</label>
               <input
                 id={`add-user-${key}`}
                 name={key}

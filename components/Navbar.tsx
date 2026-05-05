@@ -184,6 +184,8 @@ export default function Navbar() {
                   <div key={item.key} className="relative">
                     <button
                       type="button"
+                      aria-haspopup="true"
+                      aria-expanded={isOpen}
                       onClick={() => setOpenDesktopDropdown((prev) => prev === item.key ? null : item.key)}
                       className={`${linkBase} px-2.5 ${isGroupActive ? active : inactive}`}
                     >
@@ -238,6 +240,8 @@ export default function Navbar() {
                 <div className="relative hidden xl:block" ref={userDropdownRef}>
                   <button
                     onClick={() => setIsUserDropdownOpen((o) => !o)}
+                    aria-haspopup="true"
+                    aria-expanded={isUserDropdownOpen}
                     className="flex items-center gap-2 px-3 py-1.5 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                   >
                     <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm shrink-0">

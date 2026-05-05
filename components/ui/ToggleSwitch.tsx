@@ -13,6 +13,7 @@ export default function ToggleSwitch({ checked, onChange, disabled, title }: Tog
       type="button"
       role="switch"
       aria-checked={checked}
+      aria-label={title}
       title={title}
       disabled={disabled}
       onClick={onChange}

@@ -615,10 +615,10 @@ function SingleFileUploadArea({
             </svg>
           </div>
           <div>
-            <p className="text-xl font-bold text-gray-700 dark:text-gray-200">
+            <p className="text-xl font-bold text-gray-800 dark:text-gray-200">
               اسحب وأفلت ملف الحضور هنا
             </p>
-            <p className="mt-2 text-sm text-gray-400">
+            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400 font-medium">
               أو اضغط لاختيار ملف Excel واحد
             </p>
           </div>
