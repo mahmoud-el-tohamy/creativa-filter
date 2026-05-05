@@ -3,8 +3,12 @@
 import React, { useState, useRef } from "react";
 import { readExcel, Person } from "@/lib/excel";
 import { addManyToBlacklist, getBlacklistIds } from "@/lib/blacklist";
+import RouteGuard from "@/components/RouteGuard";
+import { useAuth } from "@/hooks/useAuth";
+import { logAction } from "@/lib/audit";
 
 export default function Home() {
+  const { user } = useAuth();
   const [registeredFile, setRegisteredFile] = useState<File | null>(null);
   const [attendedFile, setAttendedFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
@@ -73,6 +77,18 @@ export default function Home() {
         absentees: newAbsentees,
       });
 
+      if (user) {
+        await logAction({
+          action: "attendance_upload",
+          performedBy: user.uid,
+          performedByName: user.displayName,
+          performedByRole: user.role,
+          targetId: "",
+          targetName: "",
+          details: `تم رفع كشف الحضور — ${newAbsentees.length} غائب أضيفوا للبلاك ليست`,
+        });
+      }
+
       showToast("تمت المقارنة والإضافة بنجاح!", "success");
     } catch (error) {
       console.error(error);
@@ -83,6 +99,7 @@ export default function Home() {
   };
 
   return (
+    <RouteGuard allowedRoles={["admin", "employee"]}>
     <main className="flex-1 bg-transparent dark:bg-transparent text-gray-900 dark:text-gray-100 p-6 sm:p-12 font-sans w-full">
       {/* Toast Notification */}
       {toast && (
@@ -182,6 +199,7 @@ export default function Home() {
         )}
       </div>
     </main>
+    </RouteGuard>
   );
 }
 

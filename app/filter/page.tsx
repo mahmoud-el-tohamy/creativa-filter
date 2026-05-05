@@ -3,8 +3,12 @@
 import React, { useState, useRef, useMemo } from "react";
 import { readExcel, downloadExcel, Person } from "@/lib/excel";
 import { getBlacklistIds } from "@/lib/blacklist";
+import RouteGuard from "@/components/RouteGuard";
+import { useAuth } from "@/hooks/useAuth";
+import { logAction } from "@/lib/audit";
 
 export default function FilterPage() {
+  const { user } = useAuth();
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
@@ -66,6 +70,18 @@ export default function FilterPage() {
       setCleanList(clean);
       setBlacklistedList(blacklisted);
 
+      if (user) {
+        await logAction({
+          action: "filter_run",
+          performedBy: user.uid,
+          performedByName: user.displayName,
+          performedByRole: user.role,
+          targetId: "",
+          targetName: "",
+          details: `تم فلترة قائمة — ${blacklisted.length} شخص محذوف من أصل ${allCandidates.length}`,
+        });
+      }
+
       showToast("تم فلترة القائمة بنجاح!", "success");
     } catch (error) {
       console.error(error);
@@ -90,6 +106,7 @@ export default function FilterPage() {
   const totalPages = cleanList ? Math.ceil(cleanList.length / itemsPerPage) : 0;
 
   return (
+    <RouteGuard allowedRoles={["admin", "employee"]}>
     <main className="flex-1 bg-transparent dark:bg-transparent text-gray-900 dark:text-gray-100 p-6 sm:p-12 font-sans w-full">
       {toast && (
         <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-lg shadow-lg z-50 transition-all ${toast.type === "success" ? "bg-green-600 text-white" : "bg-red-600 text-white"}`}>
@@ -258,6 +275,7 @@ export default function FilterPage() {
         )}
       </div>
     </main>
+    </RouteGuard>
   );
 }
 

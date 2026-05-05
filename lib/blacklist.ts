@@ -9,6 +9,7 @@ import {
   where,
   Timestamp,
   orderBy,
+  writeBatch,
 } from "firebase/firestore";
 
 export interface BlacklistEntry {
@@ -42,6 +43,16 @@ export async function getBlacklist(): Promise<BlacklistEntry[]> {
 // حذف
 export async function removeFromBlacklist(id: string) {
   await deleteDoc(doc(db, "blacklist", id));
+}
+
+// حذف متعدد (Bulk Delete)
+export async function removeFromBlacklistBulk(ids: string[]) {
+  const batch = writeBatch(db);
+  ids.forEach(id => {
+    const docRef = doc(db, "blacklist", id);
+    batch.delete(docRef);
+  });
+  await batch.commit();
 }
 
 // حذف التلقائي بعد 4 شهور (يتنفذ عند كل فتح للصفحة)

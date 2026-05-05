@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getBlacklist, BlacklistEntry } from "@/lib/blacklist";
+import { useAuth } from "@/hooks/useAuth";
 import * as XLSX from "xlsx";
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
@@ -18,6 +19,8 @@ interface MonthlyData {
 }
 
 export default function Dashboard() {
+  const { user } = useAuth();
+  const canWrite = user?.role === "admin" || user?.role === "employee";
   const [loading, setLoading] = useState(true);
   const [entries, setEntries] = useState<BlacklistEntry[]>([]);
   const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([]);
@@ -193,7 +196,8 @@ export default function Dashboard() {
         </p>
       </header>
 
-      {/* Quick Actions Row */}
+      {/* Quick Actions Row — hidden for viewers */}
+      {canWrite && (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 sm:mb-8">
         <Link href="/attendance" className="px-6 py-4 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow font-semibold transition-colors flex items-center justify-center sm:justify-start gap-2">
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/></svg>
@@ -207,25 +211,17 @@ export default function Dashboard() {
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
           توليد الشهادات
         </Link>
-        
         {/* Export Excel Dropdown */}
         <div className="flex bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm overflow-hidden focus-within:ring-2 focus-within:ring-green-500 transition-all">
-          <select 
+          <select
             className="bg-transparent text-sm font-semibold text-gray-800 dark:text-gray-200 outline-none px-4 py-4 sm:py-3 flex-1 border-l border-gray-100 dark:border-gray-700 appearance-none cursor-pointer"
-            onChange={(e) => {
-              if (e.target.value) {
-                downloadExcel(e.target.value);
-                e.target.value = ""; // Reset after download
-              }
-            }}
+            onChange={(e) => { if (e.target.value) { downloadExcel(e.target.value); e.target.value = ""; } }}
             defaultValue=""
           >
-            <option value="" disabled className="text-gray-500">تصدير إكسيل...</option>
-            <option value="all" className="font-bold text-green-700 dark:text-green-500">تصدير الكل</option>
+            <option value="" disabled>تصدير إكسيل...</option>
+            <option value="all">تصدير الكل</option>
             {monthlyData.map((m, i) => (
-              <option key={`month-${i}-${m.key}`} value={m.key} className="text-gray-800 dark:text-gray-200">
-                شهر {m.name} {m.year} ({m.count})
-              </option>
+              <option key={`month-${i}-${m.key}`} value={m.key}>شهر {m.name} {m.year} ({m.count})</option>
             ))}
           </select>
           <div className="w-14 flex flex-shrink-0 items-center justify-center text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 pointer-events-none">
@@ -233,6 +229,7 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+      )}
 
       {/* Section 1 - Stats Cards */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

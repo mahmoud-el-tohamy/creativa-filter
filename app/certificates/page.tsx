@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import JSZip from "jszip";
+import RouteGuard from "@/components/RouteGuard";
 
 export default function CertificatesPage() {
   const [templateSrc, setTemplateSrc] = useState<string | null>(null);
@@ -209,6 +210,7 @@ export default function CertificatesPage() {
   };
 
   return (
+    <RouteGuard allowedRoles={["admin", "employee"]}>
     <main className="flex-1 bg-transparent dark:bg-transparent text-gray-900 dark:text-gray-100 p-6 sm:p-12 font-sans w-full overflow-x-hidden">
       {/* Toast Notification */}
       {toast && (
@@ -366,5 +368,6 @@ export default function CertificatesPage() {
         </div>
       </div>
     </main>
+    </RouteGuard>
   );
 }

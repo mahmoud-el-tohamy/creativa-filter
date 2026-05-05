@@ -1,9 +1,14 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { getBlacklist, addToBlacklist, removeFromBlacklist, cleanupExpired, BlacklistEntry } from "@/lib/blacklist";
+import { getBlacklist, addToBlacklist, removeFromBlacklist, removeFromBlacklistBulk, cleanupExpired, BlacklistEntry } from "@/lib/blacklist";
+import RouteGuard from "@/components/RouteGuard";
+import { useAuth } from "@/hooks/useAuth";
+import { logAction } from "@/lib/audit";
 
 export default function BlacklistPage() {
+  const { user } = useAuth();
+  const canWrite = user?.role === "admin" || user?.role === "employee";
   const [entries, setEntries] = useState<BlacklistEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -18,6 +23,8 @@ export default function BlacklistPage() {
   // Delete dialog states
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
 
   const showToast = (message: string, type: "success" | "error") => {
     setToast({ message, type });
@@ -60,14 +67,32 @@ export default function BlacklistPage() {
       return;
     }
 
-    if (newNationalId.length < 14) {
-       showToast("الرقم القومي يجب أن يكون 14 رقماً.", "error");
-       return;
+    const nameRegex = /^[\u0600-\u06FFa-zA-Z\s]+$/;
+    if (!nameRegex.test(newName.trim())) {
+      showToast("الاسم يجب أن يحتوي على حروف عربية أو إنجليزية فقط ولا يمكن أن يحتوي على أرقام.", "error");
+      return;
+    }
+
+    const nationalIdRegex = /^\d{14}$/;
+    if (!nationalIdRegex.test(newNationalId.trim())) {
+      showToast("الرقم القومي يجب أن يكون 14 رقماً فقط دون أي حروف أو رموز.", "error");
+      return;
     }
 
     setIsSubmitting(true);
     try {
       await addToBlacklist({ name: newName.trim(), nationalId: newNationalId.trim() });
+      if (user) {
+        await logAction({
+          action: "blacklist_add",
+          performedBy: user.uid,
+          performedByName: user.displayName,
+          performedByRole: user.role,
+          targetId: newNationalId.trim(),
+          targetName: newName.trim(),
+          details: `تم إضافة ${newName.trim()} للبلاك ليست`,
+        });
+      }
       showToast("تم إضافة الشخص بنجاح.", "success");
       setIsAddModalOpen(false);
       setNewName("");
@@ -84,14 +109,55 @@ export default function BlacklistPage() {
   const handleDeleteConfirm = async () => {
     if (!deleteId) return;
     setIsDeleting(true);
+    const target = entries.find((e) => e.id === deleteId);
     try {
       await removeFromBlacklist(deleteId);
+      if (user && target) {
+        await logAction({
+          action: "blacklist_remove",
+          performedBy: user.uid,
+          performedByName: user.displayName,
+          performedByRole: user.role,
+          targetId: target.nationalId,
+          targetName: target.name,
+          details: `تم حذف ${target.name} من البلاك ليست`,
+        });
+      }
       showToast("تم الحذف بنجاح.", "success");
       setDeleteId(null);
       await loadData();
     } catch (error) {
       console.error(error);
       showToast("حدث خطأ أثناء الحذف.", "error");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleBulkDeleteConfirm = async () => {
+    if (selectedIds.length === 0) return;
+    setIsDeleting(true);
+    const count = selectedIds.length;
+    try {
+      await removeFromBlacklistBulk(selectedIds);
+      if (user) {
+        await logAction({
+          action: "blacklist_bulk_delete",
+          performedBy: user.uid,
+          performedByName: user.displayName,
+          performedByRole: user.role,
+          targetId: "",
+          targetName: "",
+          details: `تم حذف ${count} أشخاص من البلاك ليست بشكل جماعي`,
+        });
+      }
+      showToast(`تم حذف ${count} أشخاص بنجاح.`, "success");
+      setSelectedIds([]);
+      setIsBulkDeleteModalOpen(false);
+      await loadData();
+    } catch (error) {
+      console.error(error);
+      showToast("حدث خطأ أثناء الحذف المتعدد.", "error");
     } finally {
       setIsDeleting(false);
     }
@@ -104,6 +170,22 @@ export default function BlacklistPage() {
     );
   }, [entries, searchQuery]);
 
+  const toggleSelectAll = () => {
+    if (selectedIds.length === filteredEntries.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(filteredEntries.map(e => e.id!));
+    }
+  };
+
+  const toggleSelectRow = (id: string) => {
+    if (selectedIds.includes(id)) {
+      setSelectedIds(selectedIds.filter(selectedId => selectedId !== id));
+    } else {
+      setSelectedIds([...selectedIds, id]);
+    }
+  };
+
   const formatDate = (date: Date) => {
     // dd/mm/yyyy format
     const day = date.getDate().toString().padStart(2, '0');
@@ -113,7 +195,8 @@ export default function BlacklistPage() {
   };
 
   return (
-    <main className="flex-1 bg-transparent dark:bg-transparent text-gray-900 dark:text-gray-100 p-6 sm:p-12 font-sans overflow-x-hidden">
+    <RouteGuard allowedRoles={["admin", "employee", "viewer"]}>
+      <main className="flex-1 bg-transparent dark:bg-transparent text-gray-900 dark:text-gray-100 p-6 sm:p-12 font-sans overflow-x-hidden">
       {/* Toast Notification */}
       {toast && (
         <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-lg shadow-lg z-50 transition-all ${toast.type === "success" ? "bg-green-600 text-white" : "bg-red-600 text-white"}`}>
@@ -131,15 +214,17 @@ export default function BlacklistPage() {
               لوحة تحكم لإدارة المستبعدين مع خاصية الحذف التلقائي بعد 4 شهور
             </p>
           </div>
-          <button
-            onClick={() => setIsAddModalOpen(true)}
-            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-full shadow-sm transition-all duration-300 flex items-center gap-2"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-            إضافة شخص جديد
-          </button>
+          {canWrite && (
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-full shadow-sm transition-all duration-300 flex items-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              إضافة شخص جديد
+            </button>
+          )}
         </header>
 
         {/* Stats & Search Bar */}
@@ -156,19 +241,32 @@ export default function BlacklistPage() {
             </div>
           </div>
 
-          <div className="relative w-full md:w-96">
-            <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-              <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            {canWrite && selectedIds.length > 0 && (
+              <button
+                onClick={() => setIsBulkDeleteModalOpen(true)}
+                className="shrink-0 flex items-center justify-center gap-2 bg-red-100 hover:bg-red-200 text-red-700 px-4 py-3 rounded-full font-bold transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                حذف المحدد ({selectedIds.length})
+              </button>
+            )}
+            <div className="relative w-full md:w-96">
+              <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <input
+                type="text"
+                className="block w-full pr-12 pl-4 py-3 border border-gray-200 dark:border-gray-700 rounded-full leading-5 bg-transparent dark:bg-transparent placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:bg-gray-800 transition-colors"
+                placeholder="ابحث بالاسم أو الرقم القومي..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
             </div>
-            <input
-              type="text"
-              className="block w-full pr-12 pl-4 py-3 border border-gray-200 dark:border-gray-700 rounded-full leading-5 bg-transparent dark:bg-transparent placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:bg-gray-800 transition-colors"
-              placeholder="ابحث بالاسم أو الرقم القومي..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
           </div>
         </div>
 
@@ -186,15 +284,45 @@ export default function BlacklistPage() {
               <table className="w-full text-sm text-right text-gray-600">
                 <thead className="bg-transparent dark:bg-transparent text-gray-700 dark:text-gray-300 font-semibold border-b border-gray-200 dark:border-gray-700">
                   <tr>
+                    {canWrite && (
+                      <th className="px-6 py-5 w-12 text-center">
+                        <div className="relative inline-flex items-center justify-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={filteredEntries.length > 0 && selectedIds.length === filteredEntries.length}
+                            onChange={toggleSelectAll}
+                            className="peer w-5 h-5 cursor-pointer appearance-none rounded border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 checked:bg-blue-600 checked:border-blue-600 dark:checked:bg-blue-500 dark:checked:border-blue-500 transition-all"
+                          />
+                          <svg className="absolute w-3.5 h-3.5 text-white pointer-events-none opacity-0 peer-checked:opacity-100 peer-checked:scale-100 scale-50 transition-all duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                        </div>
+                      </th>
+                    )}
                     <th className="px-6 py-5">الاسم</th>
                     <th className="px-6 py-5">الرقم القومي</th>
                     <th className="px-6 py-5">تاريخ الإضافة</th>
-                    <th className="px-6 py-5 text-center">إجراء</th>
+                    {canWrite && <th className="px-6 py-5 text-center">إجراء</th>}
                   </tr>
                 </thead>
                 <tbody>
                   {filteredEntries.map((person) => (
                     <tr key={person.id} className="border-b last:border-0 hover:bg-transparent dark:bg-transparent transition-colors">
+                      {canWrite && (
+                        <td className="px-6 py-4 text-center">
+                          <div className="relative inline-flex items-center justify-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={selectedIds.includes(person.id!)}
+                              onChange={() => toggleSelectRow(person.id!)}
+                              className="peer w-5 h-5 cursor-pointer appearance-none rounded border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 checked:bg-blue-600 checked:border-blue-600 dark:checked:bg-blue-500 dark:checked:border-blue-500 transition-all"
+                            />
+                            <svg className="absolute w-3.5 h-3.5 text-white pointer-events-none opacity-0 peer-checked:opacity-100 peer-checked:scale-100 scale-50 transition-all duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                          </div>
+                        </td>
+                      )}
                       <td className="px-6 py-4 font-medium text-gray-900 dark:text-gray-100">{person.name}</td>
                       <td className="px-6 py-4 font-mono text-gray-700 dark:text-gray-300">{person.nationalId}</td>
                       <td className="px-6 py-4">
@@ -202,18 +330,20 @@ export default function BlacklistPage() {
                           {formatDate(person.addedAt)}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-center">
-                        <button
-                          onClick={() => setDeleteId(person.id!)}
-                          className="text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-2 rounded-lg transition-colors inline-flex items-center gap-1"
-                          title="حذف"
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                          حذف
-                        </button>
-                      </td>
+                      {canWrite && (
+                        <td className="px-6 py-4 text-center">
+                          <button
+                            onClick={() => setDeleteId(person.id!)}
+                            className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 px-3 py-2 rounded-lg transition-colors inline-flex items-center gap-1"
+                            title="حذف"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            حذف
+                          </button>
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
@@ -255,8 +385,10 @@ export default function BlacklistPage() {
                 <input
                   type="text"
                   required
+                  pattern="^[\u0600-\u06FFa-zA-Z\s]+$"
                   value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
+                  onKeyDown={(e) => { if (/[0-9]/.test(e.key)) e.preventDefault(); }}
+                  onChange={(e) => setNewName(e.target.value.replace(/[^a-zA-Z\u0600-\u06FF\s]/g, ''))}
                   className="w-full px-4 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors placeholder-gray-400 dark:placeholder-gray-400"
                   placeholder="أدخل الاسم..."
                 />
@@ -266,10 +398,12 @@ export default function BlacklistPage() {
                 <input
                   type="text"
                   required
+                  pattern="^\d{14}$"
                   maxLength={14}
                   minLength={14}
                   value={newNationalId}
-                  onChange={(e) => setNewNationalId(e.target.value)}
+                  onKeyDown={(e) => { if (!/[0-9]/.test(e.key) && !['Backspace', 'Tab', 'ArrowLeft', 'ArrowRight', 'Delete', 'Enter'].includes(e.key)) e.preventDefault(); }}
+                  onChange={(e) => setNewNationalId(e.target.value.replace(/\D/g, ''))}
                   className="w-full px-4 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors placeholder-gray-400 dark:placeholder-gray-400"
                   placeholder="أدخل 14 رقماً..."
                 />
@@ -332,6 +466,38 @@ export default function BlacklistPage() {
           </div>
         </div>
       )}
+
+      {/* Bulk Delete Confirmation Dialog */}
+      {isBulkDeleteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-sm overflow-hidden text-center p-6">
+            <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-2">تأكيد الحذف المتعدد</h3>
+            <p className="text-gray-500 dark:text-gray-400 mb-6">هل أنت متأكد من حذف {selectedIds.length} أشخاص من البلاك ليست؟ لا يمكن التراجع عن هذا الإجراء.</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setIsBulkDeleteModalOpen(false)}
+                disabled={isDeleting}
+                className="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-lg font-medium transition-colors disabled:opacity-50"
+              >
+                إلغاء
+              </button>
+              <button
+                onClick={handleBulkDeleteConfirm}
+                disabled={isDeleting}
+                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 flex justify-center items-center gap-2"
+              >
+                {isDeleting ? "جاري الحذف..." : "نعم، احذف"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
+    </RouteGuard>
   );
 }
