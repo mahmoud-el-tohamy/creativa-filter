@@ -243,3 +243,191 @@ export function downloadStyledExcel(params: {
   XLSX.utils.book_append_sheet(wb, ws, sheetName);
   XLSX.writeFile(wb, `${filename}.xlsx`);
 }
+
+// ADDED: Sheet Organizer section
+export async function readExcelRaw(file: File): Promise<{ headers: string[]; rows: Record<string, unknown>[] }> {
+  const arrayBuffer = await file.arrayBuffer();
+  const data = new Uint8Array(arrayBuffer);
+  const workbook = XLSX.read(data, { type: "array" });
+  const sheetName = workbook.SheetNames[0];
+  const sheet = workbook.Sheets[sheetName];
+  
+  if (!sheet) {
+    throw new Error("لم يتم العثور على أي Sheet داخل الملف.");
+  }
+
+  // Get raw JSON (array of arrays to get exact headers)
+  const aoa = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, defval: "" });
+  if (aoa.length === 0) {
+    return { headers: [], rows: [] };
+  }
+
+  // First row is headers
+  const headers = (aoa[0] as string[]).map((h) => String(h).trim());
+  
+  // Map rest to objects
+  const rows = aoa.slice(1).map((rowArr) => {
+    const obj: Record<string, unknown> = {};
+    headers.forEach((h, i) => {
+      obj[h] = rowArr[i];
+    });
+    return obj;
+  });
+
+  return { headers, rows };
+}
+
+export function organizeAndDownload(
+  rows: Record<string, unknown>[],
+  headers: string[],
+  filename: string
+) {
+  const workshopHeader = headers.find((h) => normalizeHeader(h) === "workshop name") || "Workshop Name";
+  const timestampHeader = headers.find((h) => normalizeHeader(h) === "timestamp") || "Timestamp";
+
+  const groups = new Map<string, Record<string, unknown>[]>();
+  
+  rows.forEach((row) => {
+    const rawVal = row[workshopHeader];
+    const workshopName = typeof rawVal === "string" && rawVal.trim() !== "" ? rawVal.trim() : "غير محدد";
+    
+    const rawTimestamp = row[timestampHeader];
+    let datePart = "";
+    if (typeof rawTimestamp === "string") {
+      datePart = rawTimestamp.split(" ")[0];
+    } else if (rawTimestamp) {
+      datePart = String(rawTimestamp).split(" ")[0];
+    }
+
+    const groupKey = datePart ? `${workshopName} - ${datePart}` : workshopName;
+
+    if (!groups.has(groupKey)) {
+      groups.set(groupKey, []);
+    }
+    groups.get(groupKey)!.push(row);
+  });
+
+  const sortedKeys = Array.from(groups.keys()).sort((a, b) => {
+    if (a === "غير محدد") return 1;
+    if (b === "غير محدد") return -1;
+    return a.localeCompare(b);
+  });
+
+  const finalData: (string | number)[][] = [];
+  const merges: XLSX.Range[] = [];
+  
+  // Track specific row indices for styling
+  const titleRowIndices = new Set<number>();
+  const separatorRowIndices = new Set<number>();
+  const dataRowIndices: { r: number; isEven: boolean }[] = [];
+
+  // 1. Header row
+  finalData.push(headers);
+  let currentRowIndex = 1; // 0-indexed in SheetJS logic, so finalData[0] is row 0.
+
+  sortedKeys.forEach((key, index) => {
+    const groupRows = groups.get(key)!;
+
+    // Data rows
+    groupRows.forEach((rowObj, dataIndex) => {
+      const rowArr: (string | number)[] = headers.map((h) => (rowObj[h] as string | number) ?? "");
+      finalData.push(rowArr);
+      dataRowIndices.push({ r: currentRowIndex, isEven: dataIndex % 2 === 0 });
+      currentRowIndex++;
+    });
+
+    // Separator Row (if not last)
+    if (index < sortedKeys.length - 1) {
+      const separatorRow: (string | number)[] = new Array(headers.length).fill("");
+      finalData.push(separatorRow);
+      separatorRowIndices.add(currentRowIndex);
+      currentRowIndex++;
+    }
+  });
+
+  const ws = XLSX.utils.aoa_to_sheet(finalData);
+
+  ws["!merges"] = merges;
+  ws["!dir"] = "ltr";
+
+  const colWidths = headers.map((header, colIndex) => {
+    const norm = normalizeHeader(header);
+    let minW = 12;
+    if (norm.includes("name") && norm.includes("english")) minW = 25;
+    else if (norm.includes("email")) minW = 28;
+    else if (norm.includes("national id")) minW = 18;
+    else if (norm.includes("mobile")) minW = 14;
+
+    const maxLen = Math.max(
+      minW,
+      ...finalData.map((rowArr) => String(rowArr[colIndex] || "").length)
+    );
+    return { wch: maxLen + 4 };
+  });
+  ws["!cols"] = colWidths;
+
+  ws["!freeze"] = { xSplit: 0, ySplit: 1, topLeftCell: "A2", activePane: "bottomLeft", state: "frozen" };
+
+  // Apply Styles
+  const range = XLSX.utils.decode_range(ws["!ref"] || "A1:A1");
+  for (let R = range.s.r; R <= range.e.r; ++R) {
+    // Determine row style
+    let font: Record<string, unknown> = { name: "Arial", sz: 11, color: { rgb: "000000" } };
+    let fill: Record<string, unknown> = { fgColor: { rgb: "FFFFFF" } };
+    let alignment: Record<string, unknown> = { vertical: "center", horizontal: "center" };
+
+    if (R === 0) {
+      // Header
+      font = { name: "Arial", sz: 11, bold: true, color: { rgb: "FFFFFF" } };
+      fill = { fgColor: { rgb: "1D9E75" } };
+    } else if (titleRowIndices.has(R)) {
+      // Workshop Title
+      font = { name: "Arial", sz: 12, bold: true, color: { rgb: "FFFFFF" } };
+      fill = { fgColor: { rgb: "0F6E56" } };
+      alignment = { vertical: "center", horizontal: "left" };
+    } else if (separatorRowIndices.has(R)) {
+      // Separator
+      fill = { fgColor: { rgb: "000000" } };
+    } else {
+      // Data row
+      const dataRowInfo = dataRowIndices.find((dr) => dr.r === R);
+      if (dataRowInfo) {
+        fill = { fgColor: { rgb: dataRowInfo.isEven ? "F0FFF8" : "FFFFFF" } };
+      }
+    }
+
+    for (let C = range.s.c; C <= range.e.c; ++C) {
+      const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
+      if (!ws[cellRef]) {
+        ws[cellRef] = { t: "s", v: "" };
+      }
+      ws[cellRef].s = {
+        font,
+        fill,
+        alignment,
+        border: {
+          top: { style: "thin", color: { rgb: "E5E7EB" } },
+          bottom: { style: "thin", color: { rgb: "E5E7EB" } },
+          left: { style: "thin", color: { rgb: "E5E7EB" } },
+          right: { style: "thin", color: { rgb: "E5E7EB" } },
+        },
+      };
+    }
+  }
+
+  // Set separator row height to 8px (approx 6pt)
+  ws["!rows"] = [];
+  for (let R = 0; R <= range.e.r; ++R) {
+    if (R === 0) {
+      ws["!rows"][R] = { hpx: 30 };
+    } else if (titleRowIndices.has(R)) {
+      ws["!rows"][R] = { hpx: 25 };
+    } else if (separatorRowIndices.has(R)) {
+      ws["!rows"][R] = { hpx: 8 };
+    }
+  }
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "الحضور المنظم");
+  XLSX.writeFile(wb, `${filename.replace(/\.[^/.]+$/, "")}_منظم.xlsx`);
+}

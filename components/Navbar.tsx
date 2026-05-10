@@ -24,6 +24,7 @@ const BASE_LINKS_ALL: NavLink[] = [
   { href: "/attendance",  label: "رصد الحضور" },
   { href: "/multi-day-attendance", label: "الحضور متعدد الأيام" },
   { href: "/filter",      label: "فلترة القوائم" },
+  { href: "/organize",    label: "تنظيم الشيت" },
   { href: "/certificates",label: "الشهادات" },
   { href: "/blacklist",   label: "البلاك ليست" },
 ];
@@ -123,6 +124,7 @@ export default function Navbar() {
           ],
         },
         { type: "link" as const, href: "/filter", label: "الفلترة" },
+        { type: "link" as const, href: "/organize", label: "تنظيم الشيت" },
         { type: "link" as const, href: "/certificates", label: "الشهادات" },
         { type: "link" as const, href: "/blacklist", label: "البلاك ليست" },
         ...(isAdmin
