@@ -5,7 +5,7 @@
   "description": "نظام تتبع الحضور وإدارة البلاك ليست لمركز إبداع مصر الرقمية بالمنصورة",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#F8F8F7",
+  "background_color": "#030303",
   "theme_color": "#111827",
   "orientation": "portrait-primary",
   "icons": [
