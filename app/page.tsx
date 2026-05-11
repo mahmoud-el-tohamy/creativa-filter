@@ -289,7 +289,7 @@ function DashboardTableSkeleton() {
 }
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const canWrite = user?.role === "admin" || user?.role === "employee";
   const [loading, setLoading] = useState(true);
   const [entries, setEntries] = useState<BlacklistEntry[]>([]);
@@ -433,12 +433,22 @@ export default function Dashboard() {
         </p>
       </header>
 
-      {/* Quick Actions Row — hidden for viewers */}
-      {canWrite && (
-        <div className="grid min-h-[280px] grid-cols-1 gap-4 sm:min-h-[120px] sm:grid-cols-2 lg:min-h-[52px] lg:grid-cols-5 mb-6 sm:mb-8">
+      {/* Quick Actions Row — fixed dimensions prevent role/auth reflow */}
+      <div className="mb-6 h-[344px] sm:mb-8 sm:h-[200px] lg:h-14 overflow-hidden">
+      {authLoading ? (
+        <div className="grid h-full grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <div
+              key={index}
+              className="h-14 animate-pulse rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800"
+            />
+          ))}
+        </div>
+      ) : canWrite ? (
+        <div className="grid h-full grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
           <Link
             href="/attendance"
-            className="px-6 py-4 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow font-semibold transition-colors flex items-center justify-center sm:justify-start gap-2"
+            className="h-14 px-6 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow font-semibold transition-colors flex items-center justify-center sm:justify-start gap-2"
           >
             <svg
               className="w-5 h-5"
@@ -457,7 +467,7 @@ export default function Dashboard() {
           </Link>
           <Link
             href="/multi-day-attendance"
-            className="px-6 py-4 sm:py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-xl shadow-sm font-semibold transition-colors flex items-center justify-center sm:justify-start gap-2"
+            className="h-14 px-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-xl shadow-sm font-semibold transition-colors flex items-center justify-center sm:justify-start gap-2"
           >
             <svg
               className="w-5 h-5"
@@ -476,7 +486,7 @@ export default function Dashboard() {
           </Link>
           <Link
             href="/filter"
-            className="px-6 py-4 sm:py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-xl shadow-sm font-semibold transition-colors flex items-center justify-center sm:justify-start gap-2"
+            className="h-14 px-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-xl shadow-sm font-semibold transition-colors flex items-center justify-center sm:justify-start gap-2"
           >
             <svg
               className="w-5 h-5"
@@ -495,7 +505,7 @@ export default function Dashboard() {
           </Link>
           <Link
             href="/certificates"
-            className="px-6 py-4 sm:py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-xl shadow-sm font-semibold transition-colors flex items-center justify-center sm:justify-start gap-2"
+            className="h-14 px-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-xl shadow-sm font-semibold transition-colors flex items-center justify-center sm:justify-start gap-2"
           >
             <svg
               className="w-5 h-5"
@@ -513,14 +523,14 @@ export default function Dashboard() {
             توليد الشهادات
           </Link>
           {/* Export Excel Dropdown */}
-          <div className="flex bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm overflow-hidden focus-within:ring-2 focus-within:ring-green-500 transition-all">
+          <div className="flex h-14 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm overflow-hidden focus-within:ring-2 focus-within:ring-green-500 transition-all">
             <label htmlFor="dashboard-export-range" className="sr-only">
               تصدير بيانات إكسيل
             </label>
             <select
               id="dashboard-export-range"
               name="dashboardExportRange"
-              className="bg-transparent text-sm font-semibold text-gray-800 dark:text-gray-200 outline-none px-4 py-4 sm:py-3 flex-1 border-l border-gray-100 dark:border-gray-700 appearance-none cursor-pointer"
+              className="h-full bg-transparent text-sm font-semibold text-gray-800 dark:text-gray-200 outline-none px-4 flex-1 border-l border-gray-100 dark:border-gray-700 appearance-none cursor-pointer"
               onChange={(e) => {
                 if (e.target.value) {
                   void downloadExcel(e.target.value);
@@ -556,7 +566,8 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
-      )}
+      ) : null}
+      </div>
 
       {/* Section 1 - Stats Cards */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -623,7 +634,7 @@ export default function Dashboard() {
       </section>
 
       {/* ADDED: Time Range Selector */}
-      <section className="flex flex-col sm:flex-row justify-between items-center gap-4 py-4 border-t border-gray-100 dark:border-gray-800/50 mt-4">
+      <section className="flex h-[116px] sm:h-[80px] flex-col sm:flex-row justify-between items-center gap-4 py-4 border-t border-gray-100 dark:border-gray-800/50 mt-4 overflow-hidden">
         <span className="text-sm font-bold text-gray-800 dark:text-gray-200">
           عرض البيانات حسب:
         </span>
@@ -653,8 +664,8 @@ export default function Dashboard() {
       {/* Section 2 - Charts Row */}
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-6" dir="ltr">
         {/* Chart A: Line Chart */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 sm:p-6 flex flex-col h-[300px] min-h-[300px] sm:h-96 sm:min-h-96 w-full min-w-0 overflow-hidden contain-layout">
-          <h2 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 mb-4 sm:mb-6 text-right font-sans">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 sm:p-6 flex flex-col h-[350px] sm:h-[384px] w-full min-w-0 overflow-hidden contain-layout">
+          <h2 className="h-8 shrink-0 text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 mb-4 sm:mb-6 text-right font-sans">
             نمو البلاك ليست (التراكمي)
           </h2>
           <ChartContainer loading={loading}>
@@ -707,8 +718,8 @@ export default function Dashboard() {
         </div>
 
         {/* Chart B: Bar Chart */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 sm:p-6 flex flex-col h-[300px] min-h-[300px] sm:h-96 sm:min-h-96 w-full min-w-0 overflow-hidden contain-layout">
-          <h2 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 mb-4 sm:mb-6 text-right font-sans">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 sm:p-6 flex flex-col h-[350px] sm:h-[384px] w-full min-w-0 overflow-hidden contain-layout">
+          <h2 className="h-8 shrink-0 text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 mb-4 sm:mb-6 text-right font-sans">
             الإضافات الجديدة
           </h2>
           <ChartContainer loading={loading}>
@@ -754,8 +765,8 @@ export default function Dashboard() {
       </section>
 
       {/* Section 3 - Recent Blacklist Table */}
-      <section className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col w-full min-w-0 min-h-[508px]">
-        <div className="px-4 sm:px-6 py-5 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-800">
+      <section className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col w-full min-w-0 h-[508px]">
+        <div className="h-[72px] shrink-0 px-4 sm:px-6 py-5 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-800">
           <h2 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100">
             أحدث الإضافات
           </h2>
@@ -766,7 +777,7 @@ export default function Dashboard() {
             عرض الكل &rarr;
           </Link>
         </div>
-        <div className="overflow-x-auto w-full min-h-[436px]">
+        <div className="overflow-x-auto w-full h-[436px]">
           {loading ? (
             <DashboardTableSkeleton />
           ) : recentEntries.length === 0 ? (
@@ -845,7 +856,7 @@ function StatCard({
 }) {
   return (
     <div
-      className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 sm:p-6 flex min-h-[112px] sm:min-h-[128px] items-center justify-between gap-4 w-full min-w-0 contain-layout"
+      className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 sm:p-6 flex h-[112px] sm:h-[128px] items-center justify-between gap-4 w-full min-w-0 overflow-hidden contain-layout"
     >
       <div className="space-y-1 min-w-0">
         <p className="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
