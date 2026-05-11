@@ -122,7 +122,7 @@ export default function OrganizePage() {
             h.toLowerCase().replace(/[_-]+/g, " ").replace(/\s+/g, " ") ===
             "workshop name",
         ) || "Workshop Name";
-        
+
       const timestampHeader =
         headers.find(
           (h) =>
@@ -138,12 +138,12 @@ export default function OrganizePage() {
           typeof rawVal === "string" && rawVal.trim() !== ""
             ? rawVal.trim()
             : "غير محدد";
-            
+
         const rawTimestamp = row[timestampHeader];
         let datePart = "";
         if (rawTimestamp instanceof Date) {
-          const dd = String(rawTimestamp.getDate()).padStart(2, '0');
-          const mm = String(rawTimestamp.getMonth() + 1).padStart(2, '0');
+          const dd = String(rawTimestamp.getDate()).padStart(2, "0");
+          const mm = String(rawTimestamp.getMonth() + 1).padStart(2, "0");
           const yyyy = rawTimestamp.getFullYear();
           datePart = `${mm}/${dd}/${yyyy}`;
         } else if (typeof rawTimestamp === "string") {
@@ -152,7 +152,9 @@ export default function OrganizePage() {
           datePart = String(rawTimestamp).split(" ")[0];
         }
 
-        const groupKey = datePart ? `${workshopName} - ${datePart}` : workshopName;
+        const groupKey = datePart
+          ? `${workshopName} - ${datePart}`
+          : workshopName;
 
         if (!groups.has(groupKey)) {
           groups.set(groupKey, []);
@@ -227,7 +229,7 @@ export default function OrganizePage() {
           </div>
         )}
 
-        <div className="mx-auto max-w-2xl w-full">
+        <div className="mx-auto max-w-4xl w-full">
           {/* Header */}
           <div className="mb-8 flex items-center gap-3">
             <div className="p-3 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-2xl shadow-sm">
@@ -616,7 +618,7 @@ function WorkshopBreakdownTable({
                   <td className="px-4 py-2.5 font-semibold text-gray-800 dark:text-gray-200">
                     <div className="flex items-center gap-2">
                       <div className={`w-2 h-2 rounded-full ${colorClass}`} />
-                      <span className="truncate max-w-[200px]" title={key}>
+                      <span className="truncate max-w-[400px]" title={key}>
                         {key}
                       </span>
                     </div>
