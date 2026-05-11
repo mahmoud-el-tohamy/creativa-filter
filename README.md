@@ -43,7 +43,11 @@ The **Creativa Training Filter System** is a secure, RTL-optimized management to
 
 ### 📊 Operational Dashboard
 
-The dashboard provides a management snapshot of blacklist activity and training operations. It includes aggregate metrics, expiring blacklist visibility, average monthly additions, and responsive Recharts visualizations with selectable daily, weekly, monthly, quarterly, and yearly ranges.
+The dashboard provides a management snapshot of blacklist activity and training operations. It includes aggregate metrics, expiring blacklist visibility, average monthly additions, and responsive Recharts visualizations with selectable daily, weekly, monthly, quarterly, and yearly ranges. Auth-aware loading skeletons and fixed dimensions are implemented to completely eliminate Cumulative Layout Shift (CLS) during data fetching.
+
+### 📱 Progressive Web App (PWA)
+
+The system is fully installable as a standalone Progressive Web App on mobile and desktop devices. It features a custom manifest, optimized maskable icons, and a tailored standalone experience.
 
 ### 📝 Attendance Management
 
@@ -60,7 +64,7 @@ The dashboard provides a management snapshot of blacklist activity and training 
 
 ### 🧾 Sheet Organization
 
-The sheet organizer restructures Google Forms-style attendance exports by workshop name and date, preserves original columns, applies readable column widths, freezes the header row, and exports a cleaned workbook for downstream operational use.
+The sheet organizer restructures Google Forms-style attendance exports by grouping rows chronologically by `Timestamp` date, followed by `Workshop Name`. The underlying engine uses `xlsx-js-style` to inject rich styling—such as solid black separator rows—directly into the exported workbook while preserving original columns, applying readable column widths, and freezing the header row.
 
 ### 📜 Certificate Engine
 
@@ -85,10 +89,11 @@ The certificate generator accepts a certificate background image and an Excel li
 | **Authentication** | Firebase Auth |
 | **Database** | Cloud Firestore |
 | **Server Operations** | Firebase Admin SDK through App Router Route Handlers |
-| **Excel Logic** | SheetJS (`xlsx`) |
+| **Excel Logic** | SheetJS (`xlsx`) & `xlsx-js-style` |
 | **PDF/Archives** | jsPDF, JSZip |
 | **Charts** | Recharts |
 | **Theming** | `next-themes` |
+| **PWA Support** | `next-pwa` |
 | **Observability** | Vercel Analytics and Speed Insights |
 | **Linting** | ESLint 9 with `eslint-config-next` flat config |
 
@@ -112,6 +117,7 @@ Most operational workflows are intentionally client-heavy. Excel parsing, list c
 - **`Navbar.tsx`**: Role-aware navigation with grouped attendance/admin menus, user profile controls, responsive mobile menu behavior, and theme switching.
 - **`RouteGuard.tsx`**: Shared protected-route wrapper that redirects unauthenticated users and blocks unauthorized roles.
 - **`ThemeProvider.tsx`**: Light/dark/system theme orchestration.
+- **`WorkshopBreakdownTable.tsx`**: Componentized, expanded-width UI for previewing chronologically sorted workshop groups before export.
 - **`MultiDayAttendance.tsx`**: Dedicated multi-day attendance processor used by the `/multi-day-attendance` route.
 - **`CustomSelect.tsx`**: Reusable RTL-ready select control used by filters and admin forms.
 - **`ToggleSwitch.tsx`**: Reusable toggle control used in user administration.
