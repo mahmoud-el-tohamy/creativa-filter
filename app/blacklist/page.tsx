@@ -130,6 +130,7 @@ const FilterBar = ({
             id="blacklist-search"
             name="search"
             type="text"
+            aria-label="ابحث بالاسم أو الرقم القومي"
             className="block w-full rounded-2xl border border-gray-200 bg-gray-50/50 py-4 pr-12 pl-12 text-sm font-medium text-gray-800 placeholder-gray-400 transition-all focus:bg-white focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 dark:border-gray-700 dark:bg-gray-900/40 dark:text-gray-100 dark:placeholder-gray-600"
             placeholder="ابحث بالاسم أو الرقم القومي..."
             value={localSearch}
@@ -147,7 +148,7 @@ const FilterBar = ({
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         {/* Status Pills */}
         <div className="flex flex-col gap-2">
-          <label className="text-[11px] font-black text-gray-400 dark:text-gray-600 uppercase tracking-widest mr-1">تصفية حسب الحالة</label>
+          <span className="text-[11px] font-black text-gray-400 dark:text-gray-600 uppercase tracking-widest mr-1">تصفية حسب الحالة</span>
           <div className="flex p-1 bg-gray-100 dark:bg-gray-900/40 rounded-2xl border border-gray-200 dark:border-gray-700/50">
             {['all', 'expiring', 'active'].map((s) => (
               <button
@@ -168,6 +169,7 @@ const FilterBar = ({
             id="filter-date-from"
             name="dateFrom"
             type="date"
+            aria-label="من تاريخ"
             value={filters.dateFrom}
             onChange={(e) => dispatch({ type: "SET_DATE_FROM", payload: e.target.value })}
             className="w-full px-4 py-2.5 text-sm font-medium rounded-2xl border border-gray-200 bg-gray-50/50 text-gray-800 focus:bg-white focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 dark:border-gray-700 dark:bg-gray-900/40 dark:text-gray-100 transition-all outline-none"
@@ -181,6 +183,7 @@ const FilterBar = ({
             id="filter-date-to"
             name="dateTo"
             type="date"
+            aria-label="إلى تاريخ"
             value={filters.dateTo}
             onChange={(e) => dispatch({ type: "SET_DATE_TO", payload: e.target.value })}
             className="w-full px-4 py-2.5 text-sm font-medium rounded-2xl border border-gray-200 bg-gray-50/50 text-gray-800 focus:bg-white focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 dark:border-gray-700 dark:bg-gray-900/40 dark:text-gray-100 transition-all outline-none"
@@ -189,7 +192,7 @@ const FilterBar = ({
 
         {/* Sort */}
         <div className="flex flex-col gap-2">
-          <label className="text-[11px] font-black text-gray-400 dark:text-gray-600 uppercase tracking-widest mr-1">ترتيب النتائج</label>
+          <span className="text-[11px] font-black text-gray-400 dark:text-gray-600 uppercase tracking-widest mr-1">ترتيب النتائج</span>
           <CustomSelect
             value={filters.sort}
             onChange={(val) => dispatch({ type: "SET_SORT", payload: val })}
@@ -566,6 +569,7 @@ export default function BlacklistPage() {
                             id="blacklist-select-all"
                             name="blacklistSelectAll"
                             type="checkbox"
+                            aria-label="تحديد الكل"
                             checked={filteredEntries.length > 0 && selectedVisibleIds.length === filteredEntries.length}
                             onChange={toggleSelectAll}
                             className="peer w-5 h-5 cursor-pointer appearance-none rounded border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 checked:bg-blue-600 checked:border-blue-600 dark:checked:bg-blue-500 dark:checked:border-blue-500 transition-all"
@@ -592,6 +596,7 @@ export default function BlacklistPage() {
                               id={`blacklist-select-${person.id}`}
                               name={`blacklistSelect-${person.id}`}
                               type="checkbox"
+                              aria-label={`تحديد ${person.name}`}
                               checked={validSelectedIds.includes(person.id!)}
                               onChange={() => toggleSelectRow(person.id!)}
                               className="peer w-5 h-5 cursor-pointer appearance-none rounded border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 checked:bg-blue-600 checked:border-blue-600 dark:checked:bg-blue-500 dark:checked:border-blue-500 transition-all"
@@ -751,6 +756,7 @@ export default function BlacklistPage() {
                   name="blacklistNewName"
                   type="text"
                   required
+                  aria-label="الاسم الرباعي"
                   pattern="^[\u0600-\u06FFa-zA-Z\s]+$"
                   value={newName}
                   onKeyDown={(e) => { if (/[0-9]/.test(e.key)) e.preventDefault(); }}
@@ -766,6 +772,7 @@ export default function BlacklistPage() {
                   name="blacklistNewNationalId"
                   type="text"
                   required
+                  aria-label="الرقم القومي"
                   pattern="^\d{14}$"
                   maxLength={14}
                   minLength={14}

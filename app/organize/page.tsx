@@ -141,14 +141,16 @@ export default function OrganizePage() {
             
         const rawTimestamp = row[timestampHeader];
         let datePart = "";
-        if (typeof rawTimestamp === "string") {
+        if (rawTimestamp instanceof Date) {
+          const dd = String(rawTimestamp.getDate()).padStart(2, '0');
+          const mm = String(rawTimestamp.getMonth() + 1).padStart(2, '0');
+          const yyyy = rawTimestamp.getFullYear();
+          datePart = `${mm}/${dd}/${yyyy}`;
+        } else if (typeof rawTimestamp === "string") {
           datePart = rawTimestamp.split(" ")[0];
         } else if (rawTimestamp) {
           datePart = String(rawTimestamp).split(" ")[0];
         }
-        
-        // Only keep the date in the column data, as requested
-        row[timestampHeader] = datePart;
 
         const groupKey = datePart ? `${workshopName} - ${datePart}` : workshopName;
 
@@ -196,7 +198,7 @@ export default function OrganizePage() {
 
         dispatch({ type: "EXPORT_DONE" });
         showToast("تم تنزيل الشيت المنظم بنجاح", "success");
-      } catch (err) {
+      } catch {
         showToast("حدث خطأ أثناء التنظيم", "error");
         dispatch({
           type: "PARSE_SUCCESS",

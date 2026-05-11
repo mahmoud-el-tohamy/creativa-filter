@@ -248,7 +248,7 @@ export function downloadStyledExcel(params: {
 export async function readExcelRaw(file: File): Promise<{ headers: string[]; rows: Record<string, unknown>[] }> {
   const arrayBuffer = await file.arrayBuffer();
   const data = new Uint8Array(arrayBuffer);
-  const workbook = XLSX.read(data, { type: "array" });
+  const workbook = XLSX.read(data, { type: "array", cellDates: true });
   const sheetName = workbook.SheetNames[0];
   const sheet = workbook.Sheets[sheetName];
   
@@ -257,7 +257,7 @@ export async function readExcelRaw(file: File): Promise<{ headers: string[]; row
   }
 
   // Get raw JSON (array of arrays to get exact headers)
-  const aoa = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, defval: "" });
+  const aoa = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, defval: "", raw: true });
   if (aoa.length === 0) {
     return { headers: [], rows: [] };
   }
@@ -293,7 +293,12 @@ export function organizeAndDownload(
     
     const rawTimestamp = row[timestampHeader];
     let datePart = "";
-    if (typeof rawTimestamp === "string") {
+    if (rawTimestamp instanceof Date) {
+      const dd = String(rawTimestamp.getDate()).padStart(2, '0');
+      const mm = String(rawTimestamp.getMonth() + 1).padStart(2, '0');
+      const yyyy = rawTimestamp.getFullYear();
+      datePart = `${mm}/${dd}/${yyyy}`;
+    } else if (typeof rawTimestamp === "string") {
       datePart = rawTimestamp.split(" ")[0];
     } else if (rawTimestamp) {
       datePart = String(rawTimestamp).split(" ")[0];
@@ -313,7 +318,7 @@ export function organizeAndDownload(
     return a.localeCompare(b);
   });
 
-  const finalData: (string | number)[][] = [];
+  const finalData: (string | number | Date)[][] = [];
   const merges: XLSX.Range[] = [];
   
   // Track specific row indices for styling
@@ -330,7 +335,7 @@ export function organizeAndDownload(
 
     // Data rows
     groupRows.forEach((rowObj, dataIndex) => {
-      const rowArr: (string | number)[] = headers.map((h) => (rowObj[h] as string | number) ?? "");
+      const rowArr: (string | number | Date)[] = headers.map((h) => (rowObj[h] as string | number | Date) ?? "");
       finalData.push(rowArr);
       dataRowIndices.push({ r: currentRowIndex, isEven: dataIndex % 2 === 0 });
       currentRowIndex++;
@@ -338,7 +343,7 @@ export function organizeAndDownload(
 
     // Separator Row (if not last)
     if (index < sortedKeys.length - 1) {
-      const separatorRow: (string | number)[] = new Array(headers.length).fill("");
+      const separatorRow: (string | number | Date)[] = new Array(headers.length).fill("");
       finalData.push(separatorRow);
       separatorRowIndices.add(currentRowIndex);
       currentRowIndex++;
@@ -360,7 +365,11 @@ export function organizeAndDownload(
 
     const maxLen = Math.max(
       minW,
-      ...finalData.map((rowArr) => String(rowArr[colIndex] || "").length)
+      ...finalData.map((rowArr) => {
+        const val = rowArr[colIndex];
+        if (val instanceof Date) return 16; // Reasonable width for formatted dates
+        return String(val || "").length;
+      })
     );
     return { wch: maxLen + 4 };
   });
@@ -401,6 +410,21 @@ export function organizeAndDownload(
       if (!ws[cellRef]) {
         ws[cellRef] = { t: "s", v: "" };
       }
+      
+      const headerName = String(headers[C] || "").toLowerCase().trim();
+
+      // Prevent large numbers (like National IDs or phone numbers) from
+      // turning into scientific notation (e.g. 3.03E+13).
+      if (ws[cellRef].t === "n" && !ws[cellRef].z) {
+        ws[cellRef].z = "0"; // Format as plain number without decimals
+      } else if (ws[cellRef].t === "n" && ws[cellRef].z === "m/d/yy") {
+        if (headerName === "timestamp") {
+          ws[cellRef].z = "m/d/yyyy h:mm"; // Explicitly show time for Timestamp
+        } else {
+          ws[cellRef].z = "m/d/yyyy"; // Only show date for other date columns
+        }
+      }
+
       ws[cellRef].s = {
         font,
         fill,
