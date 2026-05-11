@@ -65,7 +65,7 @@ export default function LoginPage() {
       dir="rtl"
     >
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(29,158,117,0.22),transparent_32%),radial-gradient(circle_at_80%_10%,rgba(37,99,235,0.20),transparent_30%),radial-gradient(circle_at_50%_90%,rgba(15,23,42,0.95),transparent_45%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(37,99,235,0.26),transparent_32%),radial-gradient(circle_at_80%_10%,rgba(59,130,246,0.22),transparent_30%),radial-gradient(circle_at_50%_90%,rgba(15,23,42,0.95),transparent_45%)]" />
         <div className="absolute inset-0 opacity-[0.14] [background-image:linear-gradient(rgba(255,255,255,.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.08)_1px,transparent_1px)] [background-size:44px_44px]" />
         <div className="absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-white/8 to-transparent" />
       </div>
@@ -73,13 +73,13 @@ export default function LoginPage() {
       <section className="relative z-10 mx-auto grid w-full max-w-6xl items-center gap-10 lg:grid-cols-[1fr_460px]">
         <div className="hidden lg:block">
           <div className="max-w-xl">
-            <div className="mb-8 inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-semibold text-teal-100 shadow-2xl shadow-teal-950/30 backdrop-blur-xl">
-              <span className="h-2 w-2 rounded-full bg-teal-400 shadow-[0_0_18px_rgba(45,212,191,.9)]" />
+            <div className="mb-8 inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-semibold text-blue-100 shadow-2xl shadow-blue-950/30 backdrop-blur-xl">
+              <span className="h-2 w-2 rounded-full bg-blue-400 shadow-[0_0_18px_rgba(96,165,250,.9)]" />
               منصة داخلية آمنة لإدارة عمليات التدريب
             </div>
             <h2 className="text-5xl font-black leading-tight tracking-tight text-white">
               إدارة أكثر هدوءاً،
-              <span className="block bg-gradient-to-l from-teal-200 via-white to-blue-200 bg-clip-text text-transparent">
+              <span className="block bg-gradient-to-l from-blue-200 via-white to-sky-200 bg-clip-text text-transparent">
                 وقرارات أسرع.
               </span>
             </h2>
@@ -104,7 +104,7 @@ export default function LoginPage() {
                   className="h-full w-full object-contain"
                 />
               </div>
-              <p className="mb-2 text-xs font-bold uppercase tracking-[0.35em] text-teal-200/80">
+              <p className="mb-2 text-xs font-bold uppercase tracking-[0.35em] text-blue-200/80">
                 Creativa Mansoura
               </p>
               <h1 className="text-2xl font-black tracking-tight text-white sm:text-3xl">
@@ -146,7 +146,7 @@ export default function LoginPage() {
                   البريد الإلكتروني أو اسم المستخدم
                 </label>
                 <div className="group relative">
-                  <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-slate-500 transition-colors group-focus-within:text-teal-300">
+                  <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-slate-500 transition-colors group-focus-within:text-blue-300">
                     <svg
                       className="h-5 w-5"
                       fill="none"
@@ -168,7 +168,7 @@ export default function LoginPage() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="h-14 w-full rounded-2xl border border-white/10 bg-slate-950/45 px-4 pr-12 text-sm font-semibold text-white shadow-inner shadow-black/20 outline-none transition-all duration-200 placeholder:text-slate-500 focus:border-teal-300/60 focus:bg-slate-950/65 focus:ring-4 focus:ring-teal-400/10"
+                    className="h-14 w-full rounded-2xl border border-white/10 bg-slate-950/45 px-4 pr-12 text-sm font-semibold text-white shadow-inner shadow-black/20 outline-none transition-all duration-200 placeholder:text-slate-500 focus:border-blue-300/60 focus:bg-slate-950/65 focus:ring-4 focus:ring-blue-400/10"
                     placeholder="example@creativa.gov.eg أو username"
                     autoComplete="username"
                   />
@@ -183,7 +183,7 @@ export default function LoginPage() {
                   كلمة المرور
                 </label>
                 <div className="group relative">
-                  <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-slate-500 transition-colors group-focus-within:text-teal-300">
+                  <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-slate-500 transition-colors group-focus-within:text-blue-300">
                     <svg
                       className="h-5 w-5"
                       fill="none"
@@ -205,7 +205,7 @@ export default function LoginPage() {
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="h-14 w-full rounded-2xl border border-white/10 bg-slate-950/45 px-4 pr-12 text-sm font-semibold text-white shadow-inner shadow-black/20 outline-none transition-all duration-200 placeholder:text-slate-500 focus:border-teal-300/60 focus:bg-slate-950/65 focus:ring-4 focus:ring-teal-400/10"
+                    className="h-14 w-full rounded-2xl border border-white/10 bg-slate-950/45 px-4 pr-12 text-sm font-semibold text-white shadow-inner shadow-black/20 outline-none transition-all duration-200 placeholder:text-slate-500 focus:border-blue-300/60 focus:bg-slate-950/65 focus:ring-4 focus:ring-blue-400/10"
                     placeholder="أدخل كلمة المرور"
                     autoComplete="current-password"
                   />
@@ -215,7 +215,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="group mt-2 flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-l from-teal-500 via-emerald-500 to-blue-500 px-4 font-black text-white shadow-[0_18px_45px_rgba(20,184,166,.25)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_22px_55px_rgba(20,184,166,.34)] focus:outline-none focus:ring-4 focus:ring-teal-300/20 disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-65"
+                className="group mt-2 flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-l from-blue-700 via-blue-600 to-sky-500 px-4 font-black text-white shadow-[0_18px_45px_rgba(37,99,235,.28)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_22px_55px_rgba(37,99,235,.38)] focus:outline-none focus:ring-4 focus:ring-blue-300/20 disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-65"
               >
                 {loading ? (
                   <>
