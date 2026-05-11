@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Sans_Arabic } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
@@ -16,6 +16,11 @@ export const metadata: Metadata = {
   title: "نظام تتبع الحضور - Creativa",
   description:
     "نظام لفلترة المسجلين والحضور وإدارة البلاك ليست لمركز إبداع مصر الرقمية بالمنصورة",
+  manifest: "/manifest.json",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#111827",
 };
 
 export default function RootLayout({
